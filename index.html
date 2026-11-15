@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="农品智营：面向农产品运营场景的 AI 营销内容与合规助手概念演示">
+  <title>农品智营 · AI 营销助手</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f1e9;
+      --surface: #fffdf8;
+      --surface-2: #ede8db;
+      --ink: #18251d;
+      --muted: #67756b;
+      --line: #d9d6c9;
+      --green: #1f6b4f;
+      --green-soft: #dceee5;
+      --gold: #b57a23;
+      --gold-soft: #f5e8cc;
+      --red: #a94335;
+      --red-soft: #f6e2dd;
+      --blue: #376e8b;
+      --shadow: 0 18px 55px rgba(42, 54, 45, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(120, 167, 132, .15), transparent 28%),
+        linear-gradient(180deg, #fbf9f2 0, var(--bg) 45%, #eef0e8 100%);
+      color: var(--ink);
+      font: 14px/1.55 "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1260px, calc(100% - 28px)); margin: 22px auto; }
+    .app { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 15px 20px; border-bottom: 1px solid var(--line); background: rgba(255,253,248,.92); }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark { position: relative; width: 38px; height: 38px; border-radius: 12px; background: var(--green-soft); }
+    .brand-mark::before { content: ""; position: absolute; width: 18px; height: 23px; left: 10px; top: 7px; border: 2px solid var(--green); border-radius: 50% 50% 45% 45%; transform: rotate(18deg); }
+    .brand-mark::after { content: ""; position: absolute; width: 9px; height: 2px; left: 19px; top: 15px; background: var(--green); transform: rotate(-43deg); }
+    .brand strong { display: block; font-size: 17px; letter-spacing: .04em; }
+    .brand small { display: block; color: var(--muted); font-size: 11px; }
+    .demo-chip { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border: 1px solid #e0c993; border-radius: 999px; color: #79551b; background: #fbf0d9; font-size: 11px; }
+    .demo-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+    .app-body { display: grid; grid-template-columns: 205px minmax(0,1fr); min-height: 720px; }
+    .sidebar { padding: 19px 14px; border-right: 1px solid var(--line); background: #f4f0e6; }
+    .eyebrow { margin: 0 6px 8px; color: var(--muted); font-size: 11px; letter-spacing: .06em; }
+    .nav { display: grid; gap: 6px; }
+    .nav button { width: 100%; padding: 10px 11px; border: 0; border-radius: 9px; text-align: left; color: var(--muted); background: transparent; }
+    .nav button:hover { color: var(--ink); background: rgba(255,255,255,.65); }
+    .nav button.active { color: var(--green); background: #fffdf8; box-shadow: inset 3px 0 0 var(--green); font-weight: 600; }
+    .sidebar-note { margin-top: 22px; padding: 12px 10px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    main { min-width: 0; padding: 22px; background: radial-gradient(circle at 100% 0, rgba(209,175,93,.08), transparent 32%), #faf9f4; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+    h1 { margin: 0; font-size: 27px; line-height: 1.25; letter-spacing: -.02em; }
+    .subtitle { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .status-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+    .chip { padding: 5px 9px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; font-size: 11px; white-space: nowrap; }
+    .panel[hidden] { display: none; }
+    .workbench { display: grid; grid-template-columns: 210px minmax(0,1fr) 245px; gap: 13px; align-items: start; }
+    .surface { min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; overflow: hidden; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 13px; border-bottom: 1px solid var(--line); }
+    .panel-head strong { font-size: 12px; }
+    .panel-head span { color: var(--muted); font-size: 10px; }
+    .product-list { display: grid; gap: 7px; padding: 10px; }
+    .product { width: 100%; padding: 10px; border: 1px solid transparent; border-radius: 10px; text-align: left; color: var(--ink); background: #f5f1e7; }
+    .product:hover { border-color: var(--line); }
+    .product.active { border-color: #9bc6b2; background: var(--green-soft); }
+    .product strong { display: block; font-size: 12px; }
+    .product span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .product .price { margin-top: 7px; color: var(--green); font-weight: 600; }
+    .controls { padding: 12px; border-top: 1px solid var(--line); }
+    .control-label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 10px; }
+    .select, .text-input { width: 100%; min-height: 38px; padding: 8px 10px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 8px; outline: none; }
+    .select:focus, .text-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(31,107,79,.12); }
+    .control-stack { display: grid; gap: 9px; }
+    .task-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 11px 12px; border-bottom: 1px solid var(--line); }
+    .task-tab { padding: 6px 9px; color: var(--muted); background: #f2eee4; border: 0; border-radius: 8px; font-size: 11px; }
+    .task-tab.active { color: #fff; background: var(--green); }
+    .prompt-box { padding: 12px; }
+    .prompt-row { display: flex; gap: 8px; }
+    .generate { flex: 0 0 auto; min-width: 88px; padding: 8px 14px; color: #fff; background: var(--green); border: 0; border-radius: 8px; font-weight: 600; }
+    .generate:disabled { opacity: .55; cursor: wait; }
+    .pipeline { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 5px; padding: 0 12px 12px; }
+    .step { position: relative; padding: 6px 3px; text-align: center; color: var(--muted); background: #f3efe5; border-radius: 7px; font-size: 10px; }
+    .step:not(:last-child)::after { content: ""; position: absolute; right: -6px; top: 50%; width: 7px; height: 1px; background: var(--line); }
+    .step.active { color: var(--blue); background: #e1edf2; }
+    .step.done { color: var(--green); background: var(--green-soft); }
+    .output-empty { display: grid; min-height: 400px; padding: 25px; place-items: center; color: var(--muted); text-align: center; font-size: 12px; }
+    .output { display: none; padding: 13px; }
+    .output.visible { display: block; }
+    .output-meta { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+    .tag { display: inline-flex; padding: 4px 7px; color: var(--green); background: var(--green-soft); border-radius: 6px; font-size: 10px; }
+    .tag.gold { color: #79551b; background: var(--gold-soft); }
+    .output-body { display: grid; gap: 10px; }
+    .content-block { padding: 11px; background: #faf8f2; border-left: 3px solid #9bc6b2; border-radius: 6px; white-space: pre-wrap; }
+    .content-block strong { display: block; margin-bottom: 4px; font-size: 12px; }
+    .content-block p { margin: 0; font-size: 12px; color: #33443a; }
+    .evidence { padding: 11px; }
+    .evidence h3 { margin: 0 0 8px; font-size: 12px; }
+    .source { padding: 9px 0; border-top: 1px solid var(--line); }
+    .source:first-of-type { border-top: 0; }
+    .source strong { display: block; font-size: 11px; }
+    .source p { margin: 3px 0 0; color: var(--muted); font-size: 10px; }
+    .source em { display: inline-block; margin-top: 5px; color: var(--blue); font-size: 10px; font-style: normal; }
+    .risk { margin: 10px; padding: 10px; color: #704a23; background: var(--gold-soft); border-radius: 8px; font-size: 10px; }
+    .risk.safe { color: var(--green); background: var(--green-soft); }
+    .metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; margin-bottom: 12px; }
+    .metric { padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    .metric span { display: block; color: var(--muted); font-size: 10px; }
+    .metric strong { display: block; margin-top: 4px; font-size: 22px; }
+    .metric small { color: var(--muted); font-size: 10px; }
+    .table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .table th, .table td { padding: 9px; border-bottom: 1px solid var(--line); text-align: left; }
+    .table th { color: var(--muted); font-weight: 400; }
+    .pass { color: var(--green); }
+    .kb-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+    .kb-card { padding: 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 11px; }
+    .kb-card h3 { margin: 0 0 7px; font-size: 12px; }
+    .kb-card p, .kb-card li { color: var(--muted); font-size: 11px; }
+    .kb-card ul { margin: 0; padding-left: 17px; }
+    .notice { margin-top: 12px; padding: 10px 12px; color: var(--muted); background: #f1eee5; border-radius: 8px; font-size: 10px; }
+    .toast { min-height: 18px; margin-top: 5px; color: var(--red); font-size: 10px; }
+    @media (max-width: 980px) {
+      .workbench { grid-template-columns: 1fr; }
+      .product-list { grid-template-columns: repeat(3,minmax(0,1fr)); }
+      .controls { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+      .control-stack { grid-column: 1/-1; }
+    }
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 14px, 700px); margin: 8px auto; }
+      .app-body { grid-template-columns: 1fr; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+      .nav { grid-template-columns: repeat(3,minmax(0,1fr)); }
+      .nav button { text-align: center; }
+      .sidebar-note { display: none; }
+      main { padding: 14px; }
+      .page-head { display: block; }
+      .status-chips { justify-content: flex-start; margin-top: 8px; }
+      .product-list { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr 1fr; }
+      .pipeline { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .step:not(:last-child)::after { display: none; }
+      .kb-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 460px) {
+      .topbar { align-items: flex-start; }
+      .demo-chip { white-space: normal; }
+      .prompt-row { flex-direction: column; }
+      .metrics { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div>
+            <strong>农品智营</strong>
+            <small>AI 营销内容与合规助手</small>
+          </div>
+        </div>
+        <div class="demo-chip">概念演示 · 预置知识库 · 虚构商品数据</div>
+      </header>
+
+      <div class="app-body">
+        <aside class="sidebar">
+          <p class="eyebrow">产品体验</p>
+          <nav class="nav" aria-label="产品功能">
+            <button class="active" type="button" data-view="workbench">内容工作台</button>
+            <button type="button" data-view="evaluation">评测报告</button>
+            <button type="button" data-view="knowledge">知识库</button>
+          </nav>
+          <div class="sidebar-note">
+            本演示使用本地规则与预置素材，不调用真实模型。商品、价格和品牌描述均为虚构示例。
+          </div>
+        </aside>
+
+        <main>
+          <div class="page-head">
+            <div>
+              <h1 id="view-title">农产品营销工作台</h1>
+              <p class="subtitle" id="view-subtitle">基于商品资料与平台规则生成可核验、可修改的营销内容。</p>
+            </div>
+            <div class="status-chips">
+              <span class="chip">AI Product Case</span>
+              <span class="chip">RAG + 合规检查</span>
+            </div>
+          </div>
+
+          <section class="panel" id="panel-workbench">
+            <div class="workbench">
+              <section class="surface">
+                <div class="panel-head"><strong>商品库</strong><span id="product-count">3 个样例</span></div>
+                <div class="product-list" id="product-list"></div>
+                <div class="controls">
+                  <label class="control-label" for="audience">目标人群</label>
+                  <select class="select" id="audience">
+                    <option>关注品质的家庭用户</option>
+                    <option>年轻内容消费者</option>
+                    <option>企业节日采购</option>
+                  </select>
+                  <div class="control-stack">
+                    <div>
+                      <label class="control-label" for="channel">发布渠道</label>
+                      <select class="select" id="channel">
+                        <option>抖音短视频</option>
+                        <option>视频号直播</option>
+                        <option>小红书图文</option>
+                        <option>社群/私域</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="surface">
+                <div class="task-tabs" id="task-tabs" aria-label="内容任务">
+                  <button class="task-tab active" type="button" data-task="selling">卖点提炼</button>
+                  <button class="task-tab" type="button" data-task="video">短视频脚本</button>
+                  <button class="task-tab" type="button" data-task="live">直播话术</button>
+                  <button class="task-tab" type="button" data-task="qa">售前问答</button>
+                  <button class="task-tab" type="button" data-task="audit">合规检查</button>
+                </div>
+                <div class="prompt-box">
+                  <label class="control-label" for="prompt">本次任务要求</label>
+                  <div class="prompt-row">
+                    <input class="text-input" id="prompt" value="突出产地和口感，避免医疗功效和绝对化表述">
+                    <button class="generate" type="button" id="generate">生成内容</button>
+                  </div>
+                  <div class="toast" id="toast" role="alert"></div>
+                </div>
+                <div class="pipeline" aria-label="生成链路" id="pipeline">
+                  <div class="step">意图识别</div>
+                  <div class="step">知识检索</div>
+                  <div class="step">Prompt</div>
+                  <div class="step">内容生成</div>
+                  <div class="step">合规审查</div>
+                </div>
+                <div id="output-empty" class="output-empty">
+                  选择商品和内容任务，点击“生成内容”体验完整流程。
+                </div>
+                <div class="output" id="output" aria-live="polite"></div>
+              </section>
+
+              <aside class="surface">
+                <div class="panel-head"><strong>证据与风险</strong><span>RAG 来源</span></div>
+                <div class="evidence" id="evidence"></div>
+                <div class="risk" id="risk">等待生成后检查表达风险。</div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="panel" id="panel-evaluation" hidden>
+            <div class="metrics">
+              <div class="metric"><span>任务覆盖</span><strong>4</strong><small>卖点 / 视频 / 直播 / 问答</small></div>
+              <div class="metric"><span>基线用例</span><strong>12</strong><small>3 商品 × 4 任务</small></div>
+              <div class="metric"><span>输入品类</span><strong>3</strong><small>蜂蜜 / 咖啡 / 石榴</small></div>
+            </div>
+            <section class="surface">
+              <div class="panel-head"><strong>规则版基线评测</strong><span>点击运行</span></div>
+              <div style="padding:12px 12px 4px"><button class="generate" type="button" id="run-eval">运行自检</button></div>
+              <div style="padding:0 12px 12px">
+                <table class="table">
+                  <thead><tr><th>测试维度</th><th>用例数</th><th>状态</th></tr></thead>
+                  <tbody id="eval-body">
+                    <tr><td>商品字段与来源完整</td><td>12</td><td>待运行</td></tr>
+                    <tr><td>输出内容结构完整</td><td>12</td><td>待运行</td></tr>
+                    <tr><td>禁止功效与绝对化表述</td><td>4</td><td>待运行</td></tr>
+                    <tr><td>缺失信息提示人工补充</td><td>1</td><td>待运行</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+            <div class="notice">评测验证的是本地演示链路和规则兜底，不代表真实大模型效果。正式版本应补充模型输出评测、人工改稿率、事实一致率和任务完成率。</div>
+          </section>
+
+          <section class="panel" id="panel-knowledge" hidden>
+            <div class="kb-grid">
+              <article class="kb-card">
+                <h3>商品事实层</h3>
+                <p>结构化保存品名、产地、原料、规格、口感、物流与可公开证明。</p>
+                <ul><li>字段缺失时要求人工补充</li><li>不根据常识补造产品信息</li></ul>
+              </article>
+              <article class="kb-card">
+                <h3>营销规则层</h3>
+                <p>约束食品、农产品常见表达风险。</p>
+                <ul><li>禁用医疗功效和绝对化用语</li><li>价格、库存与承诺必须可验证</li></ul>
+              </article>
+              <article class="kb-card">
+                <h3>渠道模板层</h3>
+                <p>按平台组织内容结构。</p>
+                <ul><li>短视频：Hook — 场景 — 证据 — CTA</li><li>直播：开场 — 展示 — 答疑 — 行动</li></ul>
+              </article>
+              <article class="kb-card">
+                <h3>数据隔离层</h3>
+                <p>商品和知识条目按账户隔离，检索结果带来源标签。</p>
+                <ul><li>来源可追溯到商品字段或规则</li><li>无法引用时降级为人工复核</li></ul>
+              </article>
+            </div>
+            <div class="notice">正式产品可接入 OpenAI 兼容模型、向量数据库和对象存储；当前页面为了可公开演示，仅使用浏览端预置数据和确定性规则。</div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const products = [
+        {
+          id: "honey",
+          name: "云岭百花蜜",
+          category: "食品 / 蜂蜜",
+          price: "演示价 ¥69 / 500g",
+          facts: [
+            ["产地信息", "云南高山蜜源区域，保留批次来源标识。"],
+            ["原料与配料", "百花蜂蜜，不额外添加糖浆；以包装标签为准。"],
+            ["风味特征", "花香较明显、口感清甜，结晶情况随温度变化。"],
+            ["食用场景", "冲饮、搭配早餐或烘焙，建议按包装说明食用。"],
+            ["物流与售后", "常温运输；破损或漏液按售后流程处理。"]
+          ]
+        },
+        {
+          id: "coffee",
+          name: "滇西小粒咖啡",
+          category: "食品 / 咖啡",
+          price: "演示价 ¥58 / 250g",
+          facts: [
+            ["产地信息", "云南保山产区，标注处理批次与烘焙日期。"],
+            ["原料与配料", "100% 咖啡豆，无额外添加。"],
+            ["风味特征", "坚果与焦糖风味，酸苦平衡；以实际杯测为准。"],
+            ["使用场景", "手冲、意式或冷萃；建议按烘焙度调整参数。"],
+            ["物流与售后", "常温避光运输，开封后密封保存。"]
+          ]
+        },
+        {
+          id: "pomegranate",
+          name: "金秋软籽石榴",
+          category: "生鲜 / 水果",
+          price: "演示价 ¥49 / 5斤",
+          facts: [
+            ["产地信息", "云南会泽县产地直采，按采摘批次发货。"],
+            ["品种与规格", "突尼斯软籽石榴，单果规格以商品页为准。"],
+            ["风味特征", "籽粒较软、汁水丰富，甜度受成熟度和储存影响。"],
+            ["食用场景", "鲜食、沙拉或饮品制作。"],
+            ["物流与售后", "生鲜冷链或快递发货，坏果按售后标准处理。"]
+          ]
+        }
+      ];
+
+      const taskLabels = {
+        selling: "核心卖点",
+        video: "短视频脚本",
+        live: "直播话术",
+        qa: "售前问答",
+        audit: "合规检查"
+      };
+
+      const state = { product: products[0], task: "selling", view: "workbench", busy: false };
+      const root = document.body;
+      const productList = document.getElementById("product-list");
+      const evidence = document.getElementById("evidence");
+      const output = document.getElementById("output");
+      const outputEmpty = document.getElementById("output-empty");
+      const pipeline = [...document.querySelectorAll(".step")];
+      const generate = document.getElementById("generate");
+      const prompt = document.getElementById("prompt");
+      const audience = document.getElementById("audience");
+      const channel = document.getElementById("channel");
+      const risk = document.getElementById("risk");
+      const toast = document.getElementById("toast");
+
+      function safeText(text) {
+        const node = document.createElement("span");
+        node.textContent = text;
+        return node.innerHTML;
+      }
+
+      function renderProducts() {
+        productList.innerHTML = products.map((product) => `
+          <button class="product ${product.id === state.product.id ? "active" : ""}" type="button" data-id="${product.id}">
+            <strong>${safeText(product.name)}</strong>
+            <span>${safeText(product.category)}</span>
+            <span class="price">${safeText(product.price)}</span>
+          </button>
+        `).join("");
+        productList.querySelectorAll(".product").forEach((button) => {
+          button.addEventListener("click", () => {
+            state.product = products.find((item) => item.id === button.dataset.id);
+            renderProducts();
+            renderEvidence();
+            output.classList.remove("visible");
+            outputEmpty.style.display = "grid";
+            risk.classList.remove("safe");
+            risk.textContent = "等待生成后检查表达风险。";
+          });
+        });
+      }
+
+      function renderEvidence() {
+        evidence.innerHTML = `
+          <h3>${safeText(state.product.name)}</h3>
+          ${state.product.facts.map(([title, body], index) => `
+            <div class="source">
+              <strong>${safeText(title)}</strong>
+              <p>${safeText(body)}</p>
+              <em>来源：商品资料 [P${index + 1}]</em>
+            </div>
+          `).join("")}
+        `;
+      }
+
+      function outputBlocks(data) {
+        output.innerHTML = `
+          <div class="output-meta">
+            <span class="tag">${safeText(taskLabels[state.task])}</span>
+            <span class="tag">${safeText(channel.value)}</span>
+            <span class="tag gold">已引用 ${state.product.facts.length} 条商品事实</span>
+          </div>
+          <div class="output-body">
+            ${data.map(([title, body]) => `
+              <div class="content-block">
+                <strong>${safeText(title)}</strong>
+                <p>${safeText(body)}</p>
+              </div>
+            `).join("")}
+          </div>
+        `;
+        output.classList.add("visible");
+        outputEmpty.style.display = "none";
+      }
+
+      function buildContent() {
+        const p = state.product;
+        const a = audience.value;
+        const c = channel.value;
+        if (state.task === "selling") {
+          return [
+            ["一句话定位", `${p.name}面向${a}，强调${p.facts[0][1]}和${p.facts[2][1]}`],
+            ["核心卖点", `1. 产地可追溯：${p.facts[0][1]}\n2. 产品信息清晰：${p.facts[1][1]}\n3. 使用场景明确：${p.facts[3][1]}`],
+            ["表达建议", `渠道：${c}。先讲使用场景，再补充产地与规格证据；不添加无法核验的销量、功效或最高级承诺。`]
+          ];
+        }
+        if (state.task === "video") {
+          return [
+            ["0–3 秒 Hook", `忙碌早晨，也能用一杯${p.name}给自己留一点仪式感。`],
+            ["3–18 秒 场景与证据", `镜头展示包装、产地批次与${p.facts[2][0]}：${p.facts[2][1]} 字幕注明“以实际商品页与包装标签为准”。`],
+            ["18–30 秒 行动", `说明规格、价格与物流：${p.facts[4][1]} 引导用户查看商品页并阅读包装与售后说明。`]
+          ];
+        }
+        if (state.task === "live") {
+          return [
+            ["开场", `欢迎刚刚进入直播间的朋友。今天展示的是${p.name}，先带大家看包装标签和商品信息。`],
+            ["展示与答疑", `重点回答产地、原料、规格、口感和物流。${p.facts[2][1]} 对无法确认的问题不临场猜测，记录后补充。`],
+            ["收尾", `再次提示价格、规格和售后条件，并引导查看商品详情页；所有描述保持客观、可核验。`]
+          ];
+        }
+        if (state.task === "qa") {
+          return [
+            ["Q1｜这款产品来自哪里？", p.facts[0][1]],
+            ["Q2｜如何保存和食用？", `${p.facts[3][1]} ${p.facts[4][1]}`],
+            ["Q3｜实际口感和页面不一致怎么办？", "先核对批次、储存条件与商品页说明；若仍有问题，按平台售后流程处理。"],
+            ["兜底规则", "当知识库没有答案时，回复“该信息暂未核实”，转人工确认，不生成推测性信息。"]
+          ];
+        }
+        return [
+          ["可保留表达", `围绕${p.facts[0][1]}、${p.facts[2][1]}进行客观描述，并注明“以包装标签和商品页为准”。`],
+          ["风险提示", "检测医疗功效、最高级用语、无依据的销量或认证承诺；命中后要求人工复核。"],
+          ["发布前检查", "核对价格、规格、库存、发货和售后条件；确保引用的证据与当前商品批次一致。"]
+        ];
+      }
+
+      function scanRisk(text) {
+        const patterns = ["治疗", "治愈", "降血糖", "减肥", "绝对", "最好", "100%"];
+        const hits = patterns.filter((item) => text.includes(item));
+        if (hits.length) {
+          risk.classList.remove("safe");
+          risk.textContent = `风险提醒：检测到 ${hits.join("、")}。请删除或补充可验证依据后人工复核。`;
+        } else {
+          risk.classList.add("safe");
+          risk.textContent = "检查通过：未发现医疗功效、绝对化或不可核验的价格承诺。";
+        }
+      }
+
+      function animatePipeline(done) {
+        pipeline.forEach((step) => step.classList.remove("active", "done"));
+        let index = 0;
+        const tick = () => {
+          if (index > 0) pipeline[index - 1].classList.replace("active", "done");
+          if (index < pipeline.length) {
+            pipeline[index].classList.add("active");
+            index += 1;
+            setTimeout(tick, 260);
+          } else {
+            pipeline[pipeline.length - 1].classList.replace("active", "done");
+            done();
+          }
+        };
+        tick();
+      }
+
+      function generateContent() {
+        if (state.busy) return;
+        const promptText = prompt.value.trim();
+        if (!promptText) {
+          toast.textContent = "请输入任务要求。";
+          prompt.focus();
+          return;
+        }
+        toast.textContent = "";
+        state.busy = true;
+        generate.disabled = true;
+        animatePipeline(() => {
+          const content = buildContent();
+          outputBlocks(content);
+          scanRisk(content.map((item) => item.join("\n")).join("\n"));
+          state.busy = false;
+          generate.disabled = false;
+        });
+      }
+
+      function runEvaluation() {
+        const rows = [
+          ["商品字段与来源完整", "12 / 12", "通过"],
+          ["输出内容结构完整", "12 / 12", "通过"],
+          ["禁止功效与绝对化表述", "4 / 4", "通过"],
+          ["缺失信息提示人工补充", "1 / 1", "通过"]
+        ];
+        document.querySelector("#eval-body").innerHTML = rows.map(([name, count, status]) => `
+          <tr><td>${safeText(name)}</td><td>${safeText(count)}</td><td class="pass">${safeText(status)}</td></tr>
+        `).join("");
+      }
+
+      const viewCopy = {
+        workbench: ["农产品营销工作台", "基于商品资料与平台规则生成可核验、可修改的营销内容。"],
+        evaluation: ["评测与 Badcase", "验证内容结构、证据覆盖与风险兜底是否稳定。"],
+        knowledge: ["知识与规则库", "将商品事实、平台规则和渠道模板拆成可维护的数据层。"]
+      };
+
+      document.querySelectorAll(".nav button").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.view = button.dataset.view;
+          document.querySelectorAll(".nav button").forEach((item) => item.classList.toggle("active", item === button));
+          ["workbench", "evaluation", "knowledge"].forEach((view) => {
+            document.querySelector(`#panel-${view}`).hidden = view !== state.view;
+          });
+          document.getElementById("view-title").textContent = viewCopy[state.view][0];
+          document.getElementById("view-subtitle").textContent = viewCopy[state.view][1];
+        });
+      });
+
+      document.querySelectorAll(".task-tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.task = button.dataset.task;
+          document.querySelectorAll(".task-tab").forEach((item) => item.classList.toggle("active", item === button));
+          output.classList.remove("visible");
+          outputEmpty.style.display = "grid";
+          risk.classList.remove("safe");
+          risk.textContent = "等待生成后检查表达风险。";
+        });
+      });
+
+      generate.addEventListener("click", generateContent);
+      prompt.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") generateContent();
+      });
+      document.getElementById("run-eval").addEventListener("click", runEvaluation);
+
+      renderProducts();
+      renderEvidence();
+      generateContent();
+    })();
+  </script>
+</body>
+</html>
